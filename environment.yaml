@@ -1,0 +1,12 @@
+name: smcpp_bootstrap 
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - snakemake
+  - mamba
+  - git
+  - bcftools>=1.12.0
+  - scipy<=1.9.3
+  - numpy

@@ -1,0 +1,58 @@
+#!python3
+
+import gzip as gz
+
+BOOTS = [i for i in range(20,0,-1)]
+
+CHROMS = [i for i in range(22,0, -1)]
+
+REF_GENOME = "/home/abiddanda/novembre_lab/data/external_public/reference_genomes/hs37d5.fa"
+
+DATA_PATH = "/home/abiddanda/novembre_lab2/abiddanda/smcpp_sardinia/data/smcpp_forArjun/"
+
+TEST_PATH = "/home/abiddanda/novembre_lab2/old_project/share/smcpp_input/"
+
+
+mu=1.25e-8
+
+# ---- Useful Functions ---- #
+
+base = lambda x:os.path.splitext(x)[0]
+
+# ---- Including Other Snakefiles ---- #
+# include : "snakefiles/validation.snake"
+# include : "snakefiles/sanity.snake"
+include : "snakefiles/main_analysis.snake"
+# include : "snakefiles/supp_analysis.snake"
+# include : "snakefiles/boots_main.snake"
+# include : "snakefiles/boots_supp.snake"
+
+
+
+SUPP_POPS = ['CEU', 'TSI', 'LANUSEI', 'ARZANA', 'ILBONO', 'CAGLIARI']
+
+
+
+'''
+    Global method to run all intermediate/final data
+'''
+rule all:
+	input:
+            expand("data/smcpp_output_mult_final/{POP}_t1_{t1}_knots_{knots}_filt/{POP}_t1_{t1}_knots_{knots}_filt.csv",
+                    POP=['LAN+ARZ','TSI'], t1=150, knots=10),
+            # expand("data/smcpp_output_mult_final/{POP}_t1_{t1}_knots_{knots}_filt/{POP}_t1_{t1}_knots_{knots}_filt.csv", POP=['CEU','TSI','LAN+ARZ'], t1=100, knots=12),
+            # expand('data/smcpp_output_mult_final/split/{pop1}_{pop2}/t1_{t1}_knots_{knots}/{pop1}_{pop2}_t1_{t1}_knots_{knots}.csv', pop1=['CEU'], pop2=['TSI', 'LAN+ARZ'], t1=150, knots=10),
+            # expand('data/smcpp_output_mult_final/split/{pop1}_{pop2}/t1_{t1}_knots_{knots}/{pop1}_{pop2}_t1_{t1}_knots_{knots}.csv', pop1=['TSI'], pop2=['LAN+ARZ'], t1=150, knots=10),
+            # #expand("data/smcpp_output_mult_final_supp/{POP}_t1_{t1}_knots_{knots}_filt/{POP}_t1_{t1}_knots_{knots}_filt.csv", POP=SUPP_POPS, t1=100, knots=12),
+            # expand("data/smcpp_output_mult_final_supp/{POP}_t1_{t1}_knots_{knots}_filt/{POP}_t1_{t1}_knots_{knots}_filt.csv", POP=SUPP_POPS, t1=150, knots=10),
+            # expand("data/smcpp_output_mult_final_supp/bootstraps/{POP}/{POP}_t1_{t1}_knots_{knots}_filt_boots_{n}/model.final.json", n=[i for i in range(1,11)], t1=150, knots=10, POP=SUPP_POPS),
+            # expand("data/smcpp_output_mult_final_supp/split/{pop1}_{pop2}/t1_{t1}_knots_{knots}/{pop1}_{pop2}_t1_{t1}_knots_{knots}.csv", pop1=['CEU', 'TSI'], pop2=['LANUSEI', 'ARZANA', 'ILBONO', 'CAGLIARI'], t1=150, knots=10),
+            # expand("data/smcpp_output_mult_final_supp/split/{pop1}_{pop2}/t1_{t1}_knots_{knots}/{pop1}_{pop2}_t1_{t1}_knots_{knots}.csv", pop1=['CEU'], pop2=['TSI'], t1=150, knots=10),
+            # #expand("data/smcpp_output_mult_final/bootstraps/{POP}/{POP}_t1_{t1}_knots_{knots}_filt_boots_{n}/{POP}_t1_{t1}_knots_{knots}_filt_boots_{n}.csv", t1=150, knots=10, POP=['CEU', 'TSI','LAN+ARZ'], n=BOOTS),
+            # #expand("data/smcpp_output_mult_final/bootstraps/{POP}/{POP}_t1_{t1}_knots_{knots}_filt_boots_{n}/{POP}_t1_{t1}_knots_{knots}_filt_boots_{n}.csv", t1=100, knots=12, POP=['CEU', 'TSI','LAN+ARZ'], n=BOOTS),
+            # expand("data/smcpp_output_mult_final/split/bootstraps/{POP1}_{POP2}/t1_{t1}_knots_{knots}_filt/boots_{n}/model.final.json", POP1=['CEU'], POP2=['TSI', 'LAN+ARZ'], t1=150, knots=10, n=BOOTS),
+            # expand("data/smcpp_output_mult_final/split/bootstraps/{POP1}_{POP2}/t1_{t1}_knots_{knots}_filt/boots_{n}/model.final.json", POP1=['TSI'], POP2=['LAN+ARZ'], t1=150, knots=10, n=BOOTS),
+            # expand("data/smcpp_output_mult_final_supp/split/bootstraps/{POP1}_{POP2}/t1_{t1}_knots_{knots}_filt/boots_{n}/model.final.json", POP1=['CEU', 'TSI'], POP2=['ARZANA', 'ILBONO', 'LANUSEI', 'CAGLIARI'], t1=150, knots=10, n=[i for i in range(1,11)]),
+            # expand("data/smcpp_output_mult_final_supp/split/bootstraps/{POP1}_{POP2}/t1_{t1}_knots_{knots}_filt/boots_{n}/model.final.json", POP1=['CEU'], POP2=['TSI'], t1=150, knots=10, n=[i for i in range(1,11)]),
+            # expand("data/smcpp_output_split_check/{POP1}_{POP2}_t1_{t1}_knots_{knots}/run_{n}/model.final.json", POP1=['CEU'], POP2=['LAN+ARZ'], t1=150, knots=10, n=[i for i in range(1,11)]),
+						# expand("data/smcpp_output_sim/CEU_n{n}_m{m}/focal_{f}/t1_{t1}_knots_{knots}/ceu_t1_{t1}_knots_{knots}_filt.csv", n=[188,4], m=1, f=4, t1=200, knots=12)
