@@ -5,18 +5,11 @@
     Main Analyses
 '''
 
-
 import gzip as gz
-
 CHROMS = [i for i in range(22,0, -1)]
-
 REF_GENOME = "/home/abiddanda/novembre_lab/data/external_public/reference_genomes/hs37d5.fa"
-
 DATA_PATH = "/home/abiddanda/novembre_lab2/abiddanda/smcpp_sardinia/data/smcpp_forArjun/"
-
 VCF_PATH_MAIN = "/home/abiddanda/novembre_lab2/old_project/share/smcpp_input/20170809/"
-
-
 mu=1.25e-8
 
 # ---- Useful Functions ---- #
@@ -36,107 +29,49 @@ POP_2_INDIV = {'CEU' : CEU_INDIVS, 'TSI' : TSI_INDIVS, 'LAN+ARZ' : SARD_INDIV}
 
 
 # --- Rules --------------------------- #
-
+def obtain_file_manifest(manifest_file):
+    pass
 
 '''
 	Converts files for multiple focal individuals at once
 '''
-rule conv_vcf2smc_1pop_mult:
+rule conv_vcf2smc_1pop:
     input:
-        vcf = VCF_PATH_MAIN  + '{POP}.chr{CHROM}.smcpp.primary.vcf.gz',
-	panel = VCF_PATH_MAIN + 'aux.indlist.sampleid.primary.smcpp.{POP}.txt',
-        inclusion_mask = DATA_PATH +
-        'mappability_masks/hs37d5_chr{CHROM}.mask.bed.gz',
-        contig_length = DATA_PATH + 'contig_lengths.txt'
+        vcf = lambda wildcards: config['datasets'][wildcards.focal_pop]['manifest'],
+	panel = lambda wildcards: config['datasets'][wildcards.focal_pop]['samples'],
+        exclusion_mask = config['masks'], 
+    threads: 5
     output:
-        vcf_tmp = temp(VCF_PATH_MAIN + 'filt/{POP}.chr{CHROM}.smcpp.primary.{focal}.vcf.gz'),
-        vcf_tmp_idx = temp(VCF_PATH_MAIN + 'filt/{POP}.chr{CHROM}.smcpp.primary.{focal}.vcf.gz.tbi'), 
-        smc_out = VCF_PATH_MAIN  + 'smcpp_format/{POP}/{POP}.chr{CHROM,\d+}.{focal}.smcpp.gz'
-    run:
-        shell('bcftools view -R {input.inclusion_mask} {input.vcf} | bgzip -@10 > {output.vcf_tmp}; tabix -f {output.vcf_tmp}')
-        ind_list = []
-        pop_str = ''
-        with open(input.panel, 'r') as f:
-            for line in f:
-                id1,id2,s = line.split()
-                pop_str += id1 + ','
-                if s == 'DEEPSEQ':
-                    ind_list.append(id1)
-        pop_str = pop_str.rstrip(',')
-        contig_len = ""
-        with open(input.contig_length, 'r') as f:
-            for line in f:
-                l_splt = line.split()
-                print(l_splt)
-                if l_splt[0] == wildcards.CHROM:
-                    contig_len = l_splt[1]
-                    break
-        shell("smc++ vcf2smc  --length {contig_len} -c 50000 -d {wildcards.focal} {wildcards.focal} {output.vcf_tmp} {output.smc_out} {wildcards.CHROM} {wildcards.POP}:{pop_str}")
+        smc_out = temp('results/smcpp_format/{focal_pop}/{focal_pop}.chr{CHROM,\d+}.{focal}.smcpp.gz')
+    shell:
+        """
+        pop_str=$(awk \'{{print $1}}\' {input.panel} | paste -s -d, - | sed -e \'s/^/{wildcards.focal_pop}:/\')
+        smc++ vcf2smc -m {input.exclusion_mask} -d {wildcards.focal} {wildcards.focal} {output.vcf_tmp} {output.smc_out} {wildcards.chrom} $pop_str
+        """
 
-
-'''
-   Estimating for CEU
-'''
-rule run_smcpp_estimate_mult_ceu:
+rule smcpp_estimate_single_pop:
     input:
-        smc_files = expand(VCF_PATH_MAIN  + 'smcpp_format/CEU/CEU.chr{CHROM}.{focal}.smcpp.gz', CHROM=CHROMS, focal=POP_2_INDIV['CEU'])
+        smcpp_files = expand('results/smcpp_format_files/{{focal_pop}}/{{focal_pop}}.chr{CHROM}.{focal}.smcpp.gz', CHROM=CHROMS, focal=POP_2_INDIV['CEU'])
     output:
-        smc_out = "data/smcpp_output_mult_final/CEU_t1_{t1}_knots_{knots}_filt/model.final.json"
-    run:
-        n_t1 = ''; n_knots = '';
-        if wildcards.t1 != 'None':
-            n_t1 = '--timepoints ' + wildcards.t1 + '30000'
-        if wildcards.knots != 'None':
-            n_knots = '--knots ' + wildcards.knots
-        shell("smc++ estimate -o data/smcpp_output_mult_final/CEU_t1_{wildcards.t1}_knots_{wildcards.knots}_filt/ {n_t1} {n_knots} -v {mu}  {VCF_PATH_MAIN}/smcpp_format/CEU/CEU.*.smcpp.gz")
-
-
-'''
-   Estimating for TSI
-'''
-rule run_smcpp_estimate_mult_tsi:
-	input:
-            smc_files = expand(VCF_PATH_MAIN  + 'smcpp_format/TSI/TSI.chr{CHROM}.{focal}.smcpp.gz', CHROM=CHROMS, focal=POP_2_INDIV['TSI'])
-	output:
-            smc_out = "data/smcpp_output_mult_final/TSI_t1_{t1}_knots_{knots}_filt/model.final.json"
-	run:
-            n_t1 = ''; n_knots = '';
-            if wildcards.t1 != 'None':
-                n_t1 = '--timepoints ' + wildcards.t1 + ' 300000'
-            if wildcards.knots != 'None':
-                n_knots = '--knots ' + wildcards.knots
-            shell("smc++ estimate -o data/smcpp_output_mult_final/TSI_t1_{wildcards.t1}_knots_{wildcards.knots}_filt/ {n_t1} {n_knots} --multi --spline pchip --em-iterations 5 --cores 4 -v {mu}  {VCF_PATH_MAIN}/smcpp_format/TSI/TSI.*.smcpp.gz")
-
-'''
-   Estimating for Sardinia
-'''
-rule run_smcpp_estimate_mult_lan_arz:
-	input:
-            smc_files = expand(VCF_PATH_MAIN  + 'smcpp_format/LAN+ARZ/LAN+ARZ.chr{CHROM}.{focal}.smcpp.gz', CHROM=CHROMS, focal=POP_2_INDIV['LAN+ARZ'])
-	output:
-            smc_out = "data/smcpp_output_mult_final/LAN+ARZ_t1_{t1}_knots_{knots}_filt/model.final.json"
-	run:
-            n_t1 = ''; n_knots = '';
-            if wildcards.t1 != 'None':
-                n_t1 = '--timepoints ' + wildcards.t1 + ' 300000'
-            if wildcards.knots != 'None':
-                n_knots = '--knots ' + wildcards.knots
-            shell("smc++ estimate -o data/smcpp_output_mult_final/LAN+ARZ_t1_{wildcards.t1}_knots_{wildcards.knots}_filt/ {n_t1} {n_knots} --spline pchip --em-iterations 5 --cores 4 -v {mu}  {VCF_PATH_MAIN}/smcpp_format/LAN+ARZ/LAN+ARZ.*.smcpp.gz")
-
+        smc_out = "results/smcpp_output_mult_final/{{focal_pop}}_t1_{t1}_knots_{knots}_filt/model.final.json"
+    params:
+        t1 = lambda wildcards:  f'--timepoints {wildcards.t1} 30000' if wildcards.t1 != "None" else  "",
+        knots = lambda wildcards: f'--knots {wildcards.knots}' if wildcards.knots != "None" else "",
+        mu = config['mu']
+    shell:
+        "smc++ estimate -o data/smcpp_output_mult_final/CEU_t1_{wildcards.t1}_knots_{wildcards.knots}_filt/ {params.t1} {params.knots} -v {params.mu} {input.smcpp_files}"
 
 '''
     Generates CSVs of the final results
 '''
-rule generate_csvs:
+rule gen_smcpp_csvs_single:
     input:
         smc_out = "data/smcpp_output_mult_final/{POP}_t1_{t1}_knots_{knots}_filt/model.final.json"
     output:
         smc_csv = "data/smcpp_output_mult_final/{POP}_t1_{t1}_knots_{knots}_filt/{POP}_t1_{t1}_knots_{knots}_filt.csv",
         smc_pdf = "data/smcpp_output_mult_final/{POP}_t1_{t1}_knots_{knots}_filt/{POP}_t1_{t1}_knots_{knots}_filt.pdf"
-    run:
-        shell('smc++ plot {output.smc_pdf} {input.smc_out} --csv')
-
-
+    shell:
+        'smc++ plot {output.smc_pdf} {input.smc_out} --csv'
 
 # ---- Estimating Split Times ---- #
 

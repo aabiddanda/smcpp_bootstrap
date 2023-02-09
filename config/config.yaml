@@ -1,7 +1,17 @@
 ref_genome: ""
-mutation_rate: 1.2e-8
+mutation_rate: 1.25e-8
 datasets:
-   YRI: "yri.manifest.tsv"
+   YRI:
+    manifest: "resources/yri.manifest.tsv"
+    popfile: "sandbox/yri_samples.txt"
+    focal_indiv:
+      - 
+   CEU: 
+    manifest: "resources/ceu.manifest.tsv"
+    popfile: "sandbox/ceu_samples.txt"
+    focal_indiv:
+      - "NA06984"
+      - "NA06985"
 bootstrap_params:
   bootstrap: False
   nbootstrap: 10
