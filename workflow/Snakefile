@@ -18,17 +18,6 @@ mu=1.25e-8
 # ---- Useful Functions ---- #
 
 base = lambda x:os.path.splitext(x)[0]
-
-# ---- Including Other Snakefiles ---- #
-# include : "snakefiles/validation.snake"
-# include : "snakefiles/sanity.snake"
-include : "snakefiles/main_analysis.snake"
-# include : "snakefiles/supp_analysis.snake"
-# include : "snakefiles/boots_main.snake"
-# include : "snakefiles/boots_supp.snake"
-
-
-
 SUPP_POPS = ['CEU', 'TSI', 'LANUSEI', 'ARZANA', 'ILBONO', 'CAGLIARI']
 
 
@@ -56,3 +45,14 @@ rule all:
             # expand("data/smcpp_output_mult_final_supp/split/bootstraps/{POP1}_{POP2}/t1_{t1}_knots_{knots}_filt/boots_{n}/model.final.json", POP1=['CEU'], POP2=['TSI'], t1=150, knots=10, n=[i for i in range(1,11)]),
             # expand("data/smcpp_output_split_check/{POP1}_{POP2}_t1_{t1}_knots_{knots}/run_{n}/model.final.json", POP1=['CEU'], POP2=['LAN+ARZ'], t1=150, knots=10, n=[i for i in range(1,11)]),
 						# expand("data/smcpp_output_sim/CEU_n{n}_m{m}/focal_{f}/t1_{t1}_knots_{knots}/ceu_t1_{t1}_knots_{knots}_filt.csv", n=[188,4], m=1, f=4, t1=200, knots=12)
+
+
+# ---- Including Other Snakefiles ---- #
+# include : "snakefiles/validation.snake"
+# include : "snakefiles/sanity.snake"
+include : "snakefiles/main_analysis.snake"
+# include : "snakefiles/supp_analysis.snake"
+# include : "snakefiles/boots_main.snake"
+# include : "snakefiles/boots_supp.snake"
+
+

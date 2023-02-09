@@ -1,4 +1,7 @@
+ref_genome: ""
+mutation_rate: 1.2e-8
 datasets:
-   AFR:
-    chr22: ""
-    chr21: ""
+   YRI: "yri.manifest.tsv"
+bootstrap_params:
+  bootstrap: False
+  nbootstrap: 10
