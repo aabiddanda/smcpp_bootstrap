@@ -1,8 +1,8 @@
 mu: 1.25e-8
 datasets:
    YRI:
-    manifest: "resources/yri.manifest.tsv"
-    popfile: "sandbox/yri_samples.txt"
+    manifest: "config/manifests/yri.manifest.tsv"
+    popfile: "config/samples/yri_samples.txt"
     focal_indiv:
       - "NA18486"
       - "NA18487"
@@ -11,8 +11,8 @@ datasets:
     t1: 20
     knots: 20
    CEU: 
-    manifest: "resources/ceu.manifest.tsv"
-    popfile: "sandbox/ceu_samples.txt"
+    manifest: "config/manifests/ceu.manifest.tsv"
+    popfile: "config/samples/ceu_samples.txt"
     focal_indiv:
       - "NA06984"
       - "NA06985"
