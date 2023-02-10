@@ -11,6 +11,7 @@ import yaml
 import warnings
 import datetime
 
+# Mark the datestamp for any date-specific files
 DATESTAMP = datetime.datetime.now().strftime("%Y%m%d")
 
 # configure shell behavior for all rules
@@ -24,32 +25,44 @@ print(f"smcpp-analysis workflow {label}")
 # create log dir
 Path("logs/").mkdir(parents=True, exist_ok=True)
 
+
 # Setup and validate a configfile
 configfile: "config/config.yaml"
-validate(config, schema="../schemas/dataset.schema.yaml")
+validate(config, schema="../schema/config.schema.yaml")
 
 # Create the full manifest from all populations
 manifest_acc = []
 for p in config["datasets"]:
-    cur_manifest = pd.read_csv(config["datasets"][p]["manifest"])
-    cur_manifest['population'] = p
-    manifests.append(cur_manifest)
+    cur_manifest = pd.read_csv(config["datasets"][p]["manifest"], sep="\t")
+    cur_manifest["population"] = p
+    manifest_acc.append(cur_manifest)
 manifest = pd.concat(manifest_acc)
+print(manifest)
 
 TARGETS = []
+# 1. Create the targets for single demography estimates
 if config["single_pop_demography"]["enabled"]:
     for p in config["single_pop_demography"]["populations"]:
-        t1 = config["datasets"][p]['t1']
-        knots = config["datasets"][p]['knots']
-        TARGETS.append(f"data/smcpp_output_mult_final/{p}_t1_{t1}_knots_{knots}_filt/{p}_t1_{t1}_knots_{knots}_filt.csv")
+        t1 = config["datasets"][p]["t1"]
+        knots = config["datasets"][p]["knots"]
+        TARGETS.append(
+            f"data/smcpp_output_mult_final/{p}_t1_{t1}_knots_{knots}_filt/{p}_t1_{t1}_knots_{knots}_filt.csv"
+        )
+
+# 2. Create targets for split-time estimation
+
+
+# 3. Create targets for bootstrapped estimation
+
 
 localrules:
     all,
 
+
 rule all:
     input:
-        TARGETS
+        TARGETS,
 
 
 # ---- Including Other Snakefiles ---- #
-include : "snakefiles/smcpp.smk"
+include: "rules/smcpp.smk"

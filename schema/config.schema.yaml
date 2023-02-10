@@ -2,12 +2,44 @@ $schema: "http://json-schema.org/draft-07/schema#"
 description: "SMC++ snakemake analysis configuration file."
 type: object
 properties:
+  mu:
+    type: number
+    minimum: 0.0
+    maximum: 1.0
   datasets:
     type: object
+    items:
+      type: object
+      properties:
+        manifest:
+          type: string
+          pattern: "^*.tsv$"
+        popfile:
+          type: string
+          pattern: "^*.(tsv|txt)$"
+        focal_indiv:
+          type: array
+          items:
+            type: string
+            minItems: 1
+        t1:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        knots:
+          type: integer
+          minimum: 5
+          maximum: 20
+      required:
+        - manifest
+        - popfile
+        - focal_indiv
+        - t1
+        - knots
   single_pop_demography:
     type: object
     properties:
-      enabled: 
+      enabled:
         type: boolean
       populations:
         type: array
@@ -17,102 +49,34 @@ properties:
     required:
       - enabled
       - populations
-#  manifest:
-    #type: string
-  #genome_build:
-    #type: string
-    #pattern: "^b38$"
-  #tools:
-    #type: object
-    #pattern: "^shapeit4$|^eagle$"
-    #properties:
-      #shapeit4:
-        #type: object
-        #properties:
-          #enabled:
-            #type: boolean
-          #mcmc-iterations:
-            #type: string
-            #pattern: "[0-9]+[b|p|m],"
-          #pbwt-depth:
-            #type: integer
-            #minimum: 2
-          #pbwt-mdr:
-            #type: number
-            #minimum: 0.0
-          #pbwt-mac:
-            #type: integer
-            #minimum: 2
-          #seed:
-            #type: integer
-            #minimum: 1
-          #sequencing:
-            #type: boolean
-        #required:
-          #- enabled
-          #- mcmc-iterations
-          #- pbwt-depth
-          #- pbwt-mdr
-          #- pbwt-mac
-          #- seed
-          #- sequencing
-      #eagle:
-        #type: object
-        #properties:
-          #enabled:
-            #type: boolean
-          #kpbwt:
-            #type: integer
-            #minimum: 2
-          #pbwt-iters:
-            #type: integer
-            #minimum: 0
-          #expect-ibd:
-            #type: number
-            #minimum: 0
-          #no-impute-missing:
-            #type: boolean
-          #geno-err-prob:
-            #type: number
-            #minimum: 0.00001
-            #maximum: 0.5
-          #hist-factor:
-            #type: number
-            #minimum: 0
-        #required:
-          #- enabled
-          #- kpbwt
-          #- pbwt-iters
-          #- expect-ibd
-          #- no-impute-missing
-          #- geno-err-prob
-          #- hist-factor
-    #required:
-      #- shapeit4
-      #- eagle
-  #evaluation:
-    #type: object
-    #properties:
-      #enabled:
-        #type: boolean
-        #default: no
-      #fam:
-        #type: string
-      #maf:
-        #type: number
-        #minimum: 0.0
-        #maximum: 0.5
-    #required:
-      #- enabled
-      #- fam
-      #- maf
-  #reference_panel:
-    #type: string
-    #default: ""
-  #recombination_maps:
-    #type: string
-    #default: ""
-#required:
-  #- evaluation
-  #- genome_build
-  #- evaluation
+  split_time_estimate:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+      populations:
+        type: array
+        minItems: 1
+        items:
+          type: string
+      required:
+        - enabled
+        - populations
+  bootstrap:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+      nbootstrap:
+        type: integer
+        minimum: 1
+        maximum: 100
+    required:
+      - enabled
+      - nbootstrap
+required:
+  - mu
+  - datasets
+  - single_pop_demography
+  - split_time_estimate
+  - bootstrap

@@ -1,4 +1,4 @@
-name: smcpp_bootstrap 
+name: smcpp_bootstrap
 channels:
   - bioconda
   - conda-forge

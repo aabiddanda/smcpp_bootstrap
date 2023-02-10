@@ -10,7 +10,7 @@ datasets:
       - "NA18489"
     t1: 20
     knots: 20
-   CEU: 
+   CEU:
     manifest: "config/manifests/ceu.manifest.tsv"
     popfile: "config/samples/ceu_samples.txt"
     focal_indiv:
@@ -23,7 +23,7 @@ single_pop_demography:
   populations:
     - "CEU"
     - "YRI"
-split_time_estimates:
+split_time_estimate:
   enabled: False
   populations:
     - "CEU"
@@ -31,4 +31,3 @@ split_time_estimates:
 bootstrap:
   enabled: False
   nbootstrap: 10
-
