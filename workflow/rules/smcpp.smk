@@ -26,13 +26,16 @@ rule conv_vcf2smc_1pop:
     output:
         smc_out = temp('results/smcpp_format/{focal_pop}/{focal_pop}.{wildcards.chrom}.{focal}.smcpp.gz')
     params:
-        exclusion_mask = config["mask"] if config["mask"] != "" else ""
+        exclusion_mask = f'-m {config["mask"]}' if config["mask"] != "" else ""
+    resources:
+        time="2:00:00",
+        mem_mb="2G"
     container:
         "docker://terhorst/smcpp:latest"
     shell:
         """
         pop_str=$(awk \'{{print $1}}\' {input.panel} | paste -s -d, - | sed -e \'s/^/{wildcards.focal_pop}:/\')
-        smc++ vcf2smc -m {params.exclusion_mask} -d {wildcards.focal} {wildcards.focal} {input.vcf_file} {output.smc_out} {wildcards.chrom} $pop_str
+        smc++ vcf2smc {params.exclusion_mask} -d {wildcards.focal} {wildcards.focal} {input.vcf_file} {output.smc_out} {wildcards.chrom} $pop_str
         """
 
 rule smcpp_estimate_single_pop:
@@ -46,8 +49,12 @@ rule smcpp_estimate_single_pop:
         mu = config["mu"]
     container:
         "docker://terhorst/smcpp:latest"
+    threads: 4
+    resources:
+        time="6:00:00",
+        mem_mb="8G"
     shell:
-        "smc++ estimate -o data/smcpp_output_mult_final/{focal_pop}_t1_{params.t1}_knots_{params.knots}_filt/ {params.t1} {params.knots} -v {params.mu} {input.smcpp_files}"
+        "smc++ estimate -o data/smcpp_output_mult_final/{focal_pop}_t1_{params.t1}_knots_{params.knots}_filt/ {params.t1} {params.knots} --cores {threads} -v {params.mu} {input.smcpp_files}"
 
 '''
     Generates CSVs of the final results
@@ -58,10 +65,13 @@ rule gen_smcpp_csvs_single:
     output:
         smc_csv = "data/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/{focal_pop}_t1_{t1}_knots_{knots}_filt.csv",
         smc_pdf = temp("data/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/{focal_pop}_t1_{t1}_knots_{knots}_filt.pdf")
+    resources:
+        time="0:30:00",
+        mem_mb="1G"
     container:
         "docker://terhorst/smcpp:latest"
     shell:
-        'smc++ plot {output.smc_pdf} {input.smc_out} --csv'
+        "smc++ plot {output.smc_pdf} {input.smc_out} --csv"
 
 
 
