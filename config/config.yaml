@@ -1,4 +1,5 @@
 mu: 1.25e-8
+mask: ""
 datasets:
    YRI:
     manifest: "config/manifests/yri.manifest.tsv"
@@ -22,7 +23,7 @@ single_pop_demography:
   enabled: True
   populations:
     - "CEU"
-    - "YRI"
+    #- "YRI"
 split_time_estimate:
   enabled: False
   populations:

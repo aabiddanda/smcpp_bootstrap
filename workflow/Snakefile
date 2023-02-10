@@ -28,6 +28,8 @@ Path("logs/").mkdir(parents=True, exist_ok=True)
 
 # Setup and validate a configfile
 configfile: "config/config.yaml"
+
+
 validate(config, schema="../schema/config.schema.yaml")
 
 # Create the full manifest from all populations
@@ -37,7 +39,6 @@ for p in config["datasets"]:
     cur_manifest["population"] = p
     manifest_acc.append(cur_manifest)
 manifest = pd.concat(manifest_acc)
-print(manifest)
 
 TARGETS = []
 # 1. Create the targets for single demography estimates
@@ -46,7 +47,7 @@ if config["single_pop_demography"]["enabled"]:
         t1 = config["datasets"][p]["t1"]
         knots = config["datasets"][p]["knots"]
         TARGETS.append(
-            f"data/smcpp_output_mult_final/{p}_t1_{t1}_knots_{knots}_filt/{p}_t1_{t1}_knots_{knots}_filt.csv"
+            f"results/smcpp_output_mult_final/{p}_t1_{t1}_knots_{knots}_filt/{p}_t1_{t1}_knots_{knots}_filt.csv"
         )
 
 # 2. Create targets for split-time estimation

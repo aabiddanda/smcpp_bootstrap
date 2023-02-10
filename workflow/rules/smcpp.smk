@@ -1,7 +1,7 @@
 #!python3
 
-import gzip as gz
 import pandas as pd
+import numpy as np
 
 # ---- Useful Functions ---- #
 
@@ -23,24 +23,24 @@ def obtain_all_chroms(pop):
 rule conv_vcf2smc_1pop:
     """Converts vcf2smc files for multiple focal individuals at once."""
     input:
-        vcf=lambda wildcards: obtain_file_manifest(wildcards.chrom, wildcards.focal_pop),
-        panel=lambda wildcards: config["datasets"][wildcards.focal_pop]["samples"],
+        vcf=lambda wildcards: obtain_vcf_manifest(wildcards.chrom, wildcards.focal_pop),
+        panel=lambda wildcards: config["datasets"][wildcards.focal_pop]["popfile"],
     threads: 5
     output:
         smc_out=temp(
-            "results/smcpp_format/{focal_pop}/{focal_pop}.{wildcards.chrom}.{focal}.smcpp.gz"
+            "results/smcpp_format/{focal_pop}/{focal_pop}.{chrom}.{focal}.smcpp.gz"
         ),
     params:
         exclusion_mask=f'-m {config["mask"]}' if config["mask"] != "" else "",
     resources:
         time="2:00:00",
         mem_mb="2G",
-    container:
+    singularity:
         "docker://terhorst/smcpp:latest"
     shell:
         """
         pop_str=$(awk \'{{print $1}}\' {input.panel} | paste -s -d, - | sed -e \'s/^/{wildcards.focal_pop}:/\')
-        smc++ vcf2smc {params.exclusion_mask} -d {wildcards.focal} {wildcards.focal} {input.vcf_file} {output.smc_out} {wildcards.chrom} $pop_str
+        smc++ vcf2smc {params.exclusion_mask} -d {wildcards.focal} {wildcards.focal} {input.vcf} {output.smc_out} {wildcards.chrom} $pop_str
         """
 
 
@@ -48,12 +48,12 @@ rule smcpp_estimate_single_pop:
     """Run SMC++ estimation of trajectory."""
     input:
         smcpp_files=lambda wildcards: expand(
-            "results/smcpp_format_files/{{focal_pop}}/{{focal_pop}}.chr{CHROM}.{focal}.smcpp.gz",
-            CHROM=obtain_all_chroms(wildcards.focal_pop),
+            "results/smcpp_format/{{focal_pop}}/{{focal_pop}}.{chrom}.{focal}.smcpp.gz",
+            chrom=obtain_all_chroms(wildcards.focal_pop),
             focal=config["datasets"][wildcards.focal_pop]["focal_indiv"],
         ),
     output:
-        smc_out="results/smcpp_output_mult_final/{{focal_pop}}_t1_{t1}_knots_{knots}_filt/model.final.json",
+        smc_out="results/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/model.final.json",
     params:
         t1=lambda wildcards: f"--timepoints {wildcards.t1} 30000"
         if wildcards.t1 != "None"
@@ -62,29 +62,29 @@ rule smcpp_estimate_single_pop:
         if wildcards.knots != "None"
         else "",
         mu=config["mu"],
-    container:
+    singularity:
         "docker://terhorst/smcpp:latest"
     threads: 4
     resources:
         time="6:00:00",
         mem_mb="8G",
     shell:
-        "smc++ estimate -o data/smcpp_output_mult_final/{focal_pop}_t1_{params.t1}_knots_{params.knots}_filt/ {params.t1} {params.knots} --cores {threads} -v {params.mu} {input.smcpp_files}"
+        "smc++ estimate -o data/smcpp_output_mult_final/{wildcards.focal_pop}_t1_{params.t1}_knots_{params.knots}_filt/ {params.t1} {params.knots} --cores {threads} -v {params.mu} {input.smcpp_files}"
 
 
 rule gen_smcpp_csvs_single:
     """Generate CSVs of SMC++ trajectories."""
     input:
-        smc_out="data/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/model.final.json",
+        smc_out=rules.smcpp_estimate_single_pop.output.smc_out,
     output:
-        smc_csv="data/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/{focal_pop}_t1_{t1}_knots_{knots}_filt.csv",
+        smc_csv="results/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/{focal_pop}_t1_{t1}_knots_{knots}_filt.csv",
         smc_pdf=temp(
-            "data/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/{focal_pop}_t1_{t1}_knots_{knots}_filt.pdf"
+            "results/smcpp_output_mult_final/{focal_pop}_t1_{t1}_knots_{knots}_filt/{focal_pop}_t1_{t1}_knots_{knots}_filt.pdf"
         ),
     resources:
         time="0:30:00",
         mem_mb="1G",
-    container:
+    singularity:
         "docker://terhorst/smcpp:latest"
     shell:
         "smc++ plot {output.smc_pdf} {input.smc_out} --csv"
@@ -131,8 +131,6 @@ rule gen_smcpp_csvs_single:
 # contig_len = l_splt[1]; break
 # shell("smc++ vcf2smc --length {contig_len} -c 50000 {output.temp_vcf_merged} {output.smc_pop1_out1} {wildcards.CHROM} {wildcards.pop1}:{pop_str1} {wildcards.pop2}:{pop_str2}")
 # shell("smc++ vcf2smc --length {contig_len} -c 50000 {output.temp_vcf_merged} {output.smc_pop2_out2} {wildcards.CHROM} {wildcards.pop2}:{pop_str2} {wildcards.pop1}:{pop_str1}")
-
-
 # '''
 # SMC++ for estimating split times between populations
 # '''

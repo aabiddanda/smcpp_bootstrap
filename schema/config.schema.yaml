@@ -2,6 +2,8 @@ $schema: "http://json-schema.org/draft-07/schema#"
 description: "SMC++ snakemake analysis configuration file."
 type: object
 properties:
+  mask:
+    type: string
   mu:
     type: number
     minimum: 0.0
@@ -76,6 +78,7 @@ properties:
       - nbootstrap
 required:
   - mu
+  - mask
   - datasets
   - single_pop_demography
   - split_time_estimate
