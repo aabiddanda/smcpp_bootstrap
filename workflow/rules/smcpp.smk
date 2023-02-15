@@ -25,7 +25,6 @@ rule conv_vcf2smc_1pop:
     input:
         vcf=lambda wildcards: obtain_vcf_manifest(wildcards.chrom, wildcards.focal_pop),
         panel=lambda wildcards: config["datasets"][wildcards.focal_pop]["popfile"],
-    threads: 5
     output:
         smc_out=temp(
             "results/smcpp_format/{focal_pop}/{focal_pop}.{chrom}.{focal}.smcpp.gz"
@@ -35,8 +34,8 @@ rule conv_vcf2smc_1pop:
     resources:
         time="2:00:00",
         mem_mb="2G",
-    singularity:
-        "docker://terhorst/smcpp:latest"
+    conda:
+        "../envs/smcpp.yaml"
     shell:
         """
         pop_str=$(awk \'{{print $1}}\' {input.panel} | paste -s -d, - | sed -e \'s/^/{wildcards.focal_pop}:/\')
@@ -62,9 +61,9 @@ rule smcpp_estimate_single_pop:
         if wildcards.knots != "None"
         else "",
         mu=config["mu"],
-    singularity:
-        "docker://terhorst/smcpp:latest"
-    threads: 4
+    conda:
+        "../envs/smcpp.yaml"
+    threads: 8
     resources:
         time="6:00:00",
         mem_mb="8G",
@@ -84,8 +83,8 @@ rule gen_smcpp_csvs_single:
     resources:
         time="0:30:00",
         mem_mb="1G",
-    singularity:
-        "docker://terhorst/smcpp:latest"
+    conda:
+        "../envs/smcpp.yaml"
     shell:
         "smc++ plot {output.smc_pdf} {input.smc_out} --csv"
 

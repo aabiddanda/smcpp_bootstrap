@@ -1,0 +1,8 @@
+name: smcpp
+channels:
+  - terhorst
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - smcpp

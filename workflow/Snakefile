@@ -16,7 +16,7 @@ DATESTAMP = datetime.datetime.now().strftime("%Y%m%d")
 
 # configure shell behavior for all rules
 shell.executable("/bin/bash")
-shell.prefix("set -euo pipefail;")
+# shell.prefix("set -euo pipefail;")
 
 # record commit-ish ID
 label = subprocess.check_output(["git", "describe", "--always"]).strip()
