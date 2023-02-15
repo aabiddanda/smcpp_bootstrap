@@ -1,5 +1,6 @@
 mu: 1.25e-8
 mask: ""
+contig_lengths: ""
 datasets:
    YRI:
     manifest: "config/manifests/yri.manifest.tsv"
