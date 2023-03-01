@@ -1,6 +1,6 @@
 mu: 1.25e-8
 mask: ""
-contig_lengths: ""
+contig_lengths: "config/utilities/chrom_lengths_hg38.txt"
 datasets:
    YRI:
     manifest: "config/manifests/yri.manifest.tsv"

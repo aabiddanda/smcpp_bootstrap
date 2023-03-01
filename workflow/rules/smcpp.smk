@@ -25,6 +25,7 @@ rule conv_vcf2smc_1pop:
     input:
         vcf=lambda wildcards: obtain_vcf_manifest(wildcards.chrom, wildcards.focal_pop),
         panel=lambda wildcards: config["datasets"][wildcards.focal_pop]["popfile"],
+        chrom_lengths=config["contig_lengths"],
     output:
         smc_out=temp(
             "results/smcpp_format/{focal_pop}/{focal_pop}.{chrom}.{focal}.smcpp.gz"
@@ -38,8 +39,9 @@ rule conv_vcf2smc_1pop:
         "../envs/smcpp.yaml"
     shell:
         """
+        contig_len=$(awk \'$1 == \"{wildcards.chrom}\" {{print $2}}\' {input.chrom_lengths})
         pop_str=$(awk \'{{print $1}}\' {input.panel} | paste -s -d, - | sed -e \'s/^/{wildcards.focal_pop}:/\')
-        smc++ vcf2smc {params.exclusion_mask} -d {wildcards.focal} {wildcards.focal} {input.vcf} {output.smc_out} {wildcards.chrom} $pop_str
+        smc++ vcf2smc {params.exclusion_mask} --length $contig_len -d {wildcards.focal} {wildcards.focal} {input.vcf} {output.smc_out} {wildcards.chrom} $pop_str
         """
 
 
@@ -68,7 +70,7 @@ rule smcpp_estimate_single_pop:
         time="6:00:00",
         mem_mb="8G",
     shell:
-        "smc++ estimate -o data/smcpp_output_mult_final/{wildcards.focal_pop}_t1_{params.t1}_knots_{params.knots}_filt/ {params.t1} {params.knots} --cores {threads} -v {params.mu} {input.smcpp_files}"
+        "smc++ estimate -o results/smcpp_output_mult_final/{wildcards.focal_pop}_t1_{wildcards.t1}_knots_{wildcards.knots}_filt/  {params.t1} {params.knots} --cores {threads} -v {params.mu} {input.smcpp_files}"
 
 
 rule gen_smcpp_csvs_single:
