@@ -1,0 +1,85 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+description: "SMC++ snakemake analysis configuration file."
+type: object
+properties:
+  mask:
+    type: string
+  mu:
+    type: number
+    minimum: 0.0
+    maximum: 1.0
+  datasets:
+    type: object
+    items:
+      type: object
+      properties:
+        manifest:
+          type: string
+          pattern: "^*.tsv$"
+        popfile:
+          type: string
+          pattern: "^*.(tsv|txt)$"
+        focal_indiv:
+          type: array
+          items:
+            type: string
+            minItems: 1
+        t1:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        knots:
+          type: integer
+          minimum: 5
+          maximum: 20
+      required:
+        - manifest
+        - popfile
+        - focal_indiv
+        - t1
+        - knots
+  single_pop_demography:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+      populations:
+        type: array
+        minItems: 1
+        items:
+          type: string
+    required:
+      - enabled
+      - populations
+  split_time_estimate:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+      populations:
+        type: array
+        minItems: 1
+        items:
+          type: string
+      required:
+        - enabled
+        - populations
+  bootstrap:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+      nbootstrap:
+        type: integer
+        minimum: 1
+        maximum: 100
+    required:
+      - enabled
+      - nbootstrap
+required:
+  - mu
+  - mask
+  - datasets
+  - single_pop_demography
+  - split_time_estimate
+  - bootstrap

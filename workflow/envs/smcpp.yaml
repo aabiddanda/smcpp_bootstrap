@@ -1,0 +1,13 @@
+name: smcpp
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python<=3.9.5
+  - gsl
+  - mpfr
+  - gmp
+  - libgomp
+  - pip
+  - pip:
+    - "git+https://github.com/popgenmethods/smcpp.git"

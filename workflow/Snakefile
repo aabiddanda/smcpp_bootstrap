@@ -1,0 +1,69 @@
+#!python3
+# The main entry point of your workflow.
+
+import os
+import subprocess
+import glob
+import pandas as pd
+from snakemake.utils import validate
+from pathlib import Path
+import yaml
+import warnings
+import datetime
+
+# Mark the datestamp for any date-specific files
+DATESTAMP = datetime.datetime.now().strftime("%Y%m%d")
+
+# configure shell behavior for all rules
+shell.executable("/bin/bash")
+# shell.prefix("set -euo pipefail;")
+
+# record commit-ish ID
+label = subprocess.check_output(["git", "describe", "--always"]).strip()
+print(f"smcpp-analysis workflow {label}")
+
+# create log dir
+Path("logs/").mkdir(parents=True, exist_ok=True)
+
+
+# Setup and validate a configfile
+configfile: "config/config.yaml"
+
+
+validate(config, schema="../schema/config.schema.yaml")
+
+# Create the full manifest from all populations
+manifest_acc = []
+for p in config["datasets"]:
+    cur_manifest = pd.read_csv(config["datasets"][p]["manifest"], sep="\t")
+    cur_manifest["population"] = p
+    manifest_acc.append(cur_manifest)
+manifest = pd.concat(manifest_acc)
+
+TARGETS = []
+# 1. Create the targets for single demography estimates
+if config["single_pop_demography"]["enabled"]:
+    for p in config["single_pop_demography"]["populations"]:
+        t1 = config["datasets"][p]["t1"]
+        knots = config["datasets"][p]["knots"]
+        TARGETS.append(
+            f"results/smcpp_output_mult_final/{p}_t1_{t1}_knots_{knots}_filt/{p}_t1_{t1}_knots_{knots}_filt.csv"
+        )
+
+# 2. Create targets for split-time estimation
+
+
+# 3. Create targets for bootstrapped estimation
+
+
+localrules:
+    all,
+
+
+rule all:
+    input:
+        TARGETS,
+
+
+# ---- Including Other Snakefiles ---- #
+include: "rules/smcpp.smk"
