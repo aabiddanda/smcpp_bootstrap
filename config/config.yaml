@@ -1,35 +1,24 @@
 mu: 1.25e-8
-mask: ""
-contig_lengths: "config/utilities/chrom_lengths_hg38.txt"
 datasets:
-   YRI:
-    manifest: "config/manifests/yri.manifest.tsv"
-    popfile: "config/samples/yri_samples.txt"
+  bonobo:
+    mask: ""
+    contig_lengths: "data/results/bonobo/bonobo.biallelic.contig_stats.txt"
+    manifest: "data/results/bonobo/bonobo.manifest.tsv"
+    popfile: "data/results/bonobo/bonobo.samples.txt"
     focal_indiv:
-      - "NA18486"
-      - "NA18487"
-      - "NA18488"
-      - "NA18489"
-    t1: 20
-    knots: 20
-   CEU:
-    manifest: "config/manifests/ceu.manifest.tsv"
-    popfile: "config/samples/ceu_samples.txt"
-    focal_indiv:
-      - "NA06984"
-      - "NA06985"
+      - "Bono"
+      - "Catherine"
+      - "Chipita"
     t1: 20
     knots: 20
 single_pop_demography:
   enabled: True
   populations:
-    - "CEU"
-    #- "YRI"
+    - "bonobo"
 split_time_estimate:
   enabled: False
   populations:
-    - "CEU"
-    - "YRI"
+    - "bonobo"
 bootstrap:
   enabled: False
   nbootstrap: 10

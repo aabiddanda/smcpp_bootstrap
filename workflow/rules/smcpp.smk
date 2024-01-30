@@ -25,13 +25,17 @@ rule conv_vcf2smc_1pop:
     input:
         vcf=lambda wildcards: obtain_vcf_manifest(wildcards.chrom, wildcards.focal_pop),
         panel=lambda wildcards: config["datasets"][wildcards.focal_pop]["popfile"],
-        chrom_lengths=config["contig_lengths"],
+        chrom_lengths=lambda wildcards: config["datasets"][wildcards.focal_pop][
+            "contig_lengths"
+        ],
     output:
         smc_out=temp(
             "results/smcpp_format/{focal_pop}/{focal_pop}.{chrom}.{focal}.smcpp.gz"
         ),
     params:
-        exclusion_mask=f'-m {config["mask"]}' if config["mask"] != "" else "",
+        exclusion_mask=lambda wildcards: f'-m {config["datasets"][wildcards.focal_pop]["mask"]}'
+        if config["datasets"][wildcards.focal_pop]["mask"] != ""
+        else "",
     resources:
         time="2:00:00",
         mem_mb="2G",

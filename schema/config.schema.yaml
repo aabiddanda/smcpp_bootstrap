@@ -2,9 +2,7 @@ $schema: "http://json-schema.org/draft-07/schema#"
 description: "SMC++ snakemake analysis configuration file."
 type: object
 properties:
-  mask:
-    type: string
-  mu:
+   mu:
     type: number
     minimum: 0.0
     maximum: 1.0
@@ -16,6 +14,8 @@ properties:
         manifest:
           type: string
           pattern: "^*.tsv$"
+        mask:
+          type: string
         popfile:
           type: string
           pattern: "^*.(tsv|txt)$"
@@ -33,6 +33,7 @@ properties:
           minimum: 5
           maximum: 20
       required:
+        - mask
         - manifest
         - popfile
         - focal_indiv
@@ -78,7 +79,6 @@ properties:
       - nbootstrap
 required:
   - mu
-  - mask
   - datasets
   - single_pop_demography
   - split_time_estimate
